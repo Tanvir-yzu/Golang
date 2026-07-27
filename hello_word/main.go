@@ -58,17 +58,72 @@ import (
 // }
 
 // একটি মিনি ব্যাংক অ্যাকাউন্ট সিস্টেম তৈরি করি।
+// type BankAccount struct {
+// 	AccountNumber string
+// 	Balance float64
+// }
+
+// func (b *BankAccount) Deposit(amount float64) {
+// 	b.Balance += amount
+// 	fmt.Println("Deposit of", amount, "was successful.")
+// }
+
+// func (b *BankAccount) Withdraw(amount float64) {
+// 	if amount > b.Balance {
+// 		fmt.Println("Insufficient balance. Withdrawal failed.")
+// 		return
+// 	}
+// 	b.Balance -= amount
+// 	fmt.Println("Withdrawal of", amount, "was successful.")
+// }
+
+// func (b *BankAccount) GetBalance() {
+// 	fmt.Println("Current balance:", b.Balance)
+// }
+
+// func main(){
+
+// 	rahim := BankAccount{
+// 		AccountNumber: "1234567890",
+// 		Balance: 1000.0,
+// 	}
+// 	rahim.Deposit(500.0)
+// 	rahim.Withdraw(200.0)
+// 	rahim.GetBalance()
+// }
+
+
+
 type BankAccount struct {
 	AccountNumber string
+	UserName string
+	Password string
 	Balance float64
+	IsLoggedIn bool
+}
+func (b *BankAccount) Login(inputUser string, inputPassword string) {
+	if inputUser == b.UserName && inputPassword == b.Password {
+		b.IsLoggedIn = true
+		fmt.Println("Login successful.")
+	} else {
+		fmt.Println("Login failed.")
+	}
 }
 
 func (b *BankAccount) Deposit(amount float64) {
+	if !b.IsLoggedIn {
+		fmt.Println("Please login first.")
+		return
+	}
 	b.Balance += amount
 	fmt.Println("Deposit of", amount, "was successful.")
 }
 
 func (b *BankAccount) Withdraw(amount float64) {
+	if !b.IsLoggedIn {
+		fmt.Println("Please login first.")
+		return
+	}
 	if amount > b.Balance {
 		fmt.Println("Insufficient balance. Withdrawal failed.")
 		return
@@ -85,8 +140,11 @@ func main(){
 
 	rahim := BankAccount{
 		AccountNumber: "1234567890",
+		UserName: "rahim",
+		Password: "123456",
 		Balance: 1000.0,
 	}
+	rahim.Login("rahim", "123456")
 	rahim.Deposit(500.0)
 	rahim.Withdraw(200.0)
 	rahim.GetBalance()

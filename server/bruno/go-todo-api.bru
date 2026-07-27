@@ -1,0 +1,269 @@
+{
+  "version": "1",
+  "name": "Go Todo API",
+  "description": "API collection for Go Todo Server with Authentication",
+  "auth": {
+    "type": "bearer",
+    "token": "{{auth_token}}",
+    "enabled": true
+  },
+  "headers": [
+    {
+      "name": "Content-Type",
+      "value": "application/json",
+      "enabled": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "base_url",
+      "value": "http://localhost:8080",
+      "enabled": true
+    },
+    {
+      "name": "auth_token",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "name": "email",
+      "value": "user@example.com",
+      "enabled": true
+    },
+    {
+      "name": "password",
+      "value": "Password1",
+      "enabled": true
+    }
+  ],
+  "requests": [
+    {
+      "id": "register",
+      "name": "1. Register User",
+      "method": "POST",
+      "url": "{{base_url}}/api/auth/register",
+      "body": {
+        "mode": "json",
+        "json": {
+          "email": "{{email}}",
+          "password": "{{password}}"
+        }
+      },
+      "tests": [
+        {
+          "name": "Status is 201",
+          "expression": "{{response.status}} == 201"
+        },
+        {
+          "name": "Response has user_id",
+          "expression": "{{response.body.user_id}} != null"
+        }
+      ],
+      "description": "Register a new user with email and password"
+    },
+    {
+      "id": "login",
+      "name": "2. Login User",
+      "method": "POST",
+      "url": "{{base_url}}/api/auth/login",
+      "body": {
+        "mode": "json",
+        "json": {
+          "email": "{{email}}",
+          "password": "{{password}}"
+        }
+      },
+      "tests": [
+        {
+          "name": "Status is 200",
+          "expression": "{{response.status}} == 200"
+        },
+        {
+          "name": "Response has token",
+          "expression": "{{response.body.token}} != null"
+        }
+      ],
+      "after": [
+        {
+          "name": "Set Auth Token",
+          "action": "setVariable",
+          "variable": "auth_token",
+          "value": "{{response.body.token}}"
+        }
+      ],
+      "description": "Login and get JWT token"
+    },
+    {
+      "id": "create-todo",
+      "name": "3. Create Todo",
+      "method": "POST",
+      "url": "{{base_url}}/api/todos",
+      "auth": {
+        "type": "bearer",
+        "token": "{{auth_token}}",
+        "enabled": true
+      },
+      "body": {
+        "mode": "json",
+        "json": {
+          "title": "Buy groceries",
+          "description": "Milk, eggs, bread"
+        }
+      },
+      "tests": [
+        {
+          "name": "Status is 201",
+          "expression": "{{response.status}} == 201"
+        },
+        {
+          "name": "Response has id",
+          "expression": "{{response.body.id}} != null"
+        }
+      ],
+      "description": "Create a new todo item"
+    },
+    {
+      "id": "get-all-todos",
+      "name": "4. Get All Todos",
+      "method": "GET",
+      "url": "{{base_url}}/api/todos",
+      "auth": {
+        "type": "bearer",
+        "token": "{{auth_token}}",
+        "enabled": true
+      },
+      "tests": [
+        {
+          "name": "Status is 200",
+          "expression": "{{response.status}} == 200"
+        },
+        {
+          "name": "Response is array",
+          "expression": "Array.isArray({{response.body}})"
+        }
+      ],
+      "description": "Get all todos for the authenticated user"
+    },
+    {
+      "id": "get-single-todo",
+      "name": "5. Get Single Todo",
+      "method": "GET",
+      "url": "{{base_url}}/api/todos/1",
+      "auth": {
+        "type": "bearer",
+        "token": "{{auth_token}}",
+        "enabled": true
+      },
+      "tests": [
+        {
+          "name": "Status is 200",
+          "expression": "{{response.status}} == 200"
+        },
+        {
+          "name": "Response has title",
+          "expression": "{{response.body.title}} != null"
+        }
+      ],
+      "description": "Get a single todo by ID"
+    },
+    {
+      "id": "update-todo",
+      "name": "6. Update Todo",
+      "method": "PUT",
+      "url": "{{base_url}}/api/todos/1",
+      "auth": {
+        "type": "bearer",
+        "token": "{{auth_token}}",
+        "enabled": true
+      },
+      "body": {
+        "mode": "json",
+        "json": {
+          "title": "Buy groceries updated",
+          "description": "Milk, eggs, bread, cheese"
+        }
+      },
+      "tests": [
+        {
+          "name": "Status is 200",
+          "expression": "{{response.status}} == 200"
+        },
+        {
+          "name": "Status is success",
+          "expression": "{{response.body.status}} == 'success'"
+        }
+      ],
+      "description": "Update an existing todo"
+    },
+    {
+      "id": "delete-todo",
+      "name": "7. Delete Todo",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/todos/1",
+      "auth": {
+        "type": "bearer",
+        "token": "{{auth_token}}",
+        "enabled": true
+      },
+      "tests": [
+        {
+          "name": "Status is 200",
+          "expression": "{{response.status}} == 200"
+        },
+        {
+          "name": "Status is success",
+          "expression": "{{response.body.status}} == 'success'"
+        }
+      ],
+      "description": "Delete a todo by ID"
+    },
+    {
+      "id": "logout",
+      "name": "8. Logout",
+      "method": "POST",
+      "url": "{{base_url}}/api/auth/logout",
+      "auth": {
+        "type": "bearer",
+        "token": "{{auth_token}}",
+        "enabled": true
+      },
+      "tests": [
+        {
+          "name": "Status is 200",
+          "expression": "{{response.status}} == 200"
+        },
+        {
+          "name": "Status is success",
+          "expression": "{{response.body.status}} == 'success'"
+        }
+      ],
+      "after": [
+        {
+          "name": "Clear Auth Token",
+          "action": "setVariable",
+          "variable": "auth_token",
+          "value": ""
+        }
+      ],
+      "description": "Logout and invalidate JWT token"
+    },
+    {
+      "id": "unauthorized-request",
+      "name": "9. Unauthorized Request",
+      "method": "GET",
+      "url": "{{base_url}}/api/todos",
+      "auth": {
+        "type": "bearer",
+        "token": "",
+        "enabled": false
+      },
+      "tests": [
+        {
+          "name": "Status is 401",
+          "expression": "{{response.status}} == 401"
+        }
+      ],
+      "description": "Test that unauthenticated requests are rejected"
+    }
+  ]
+}

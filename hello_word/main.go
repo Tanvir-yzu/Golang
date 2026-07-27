@@ -169,16 +169,35 @@ import (
 // 	}
 
 	
-	func main() {
+// 	func main() {
 
-	var prices []float64 
-	prices = append(prices, 100.0)
-	prices = append(prices, 200.0)
-	prices = append(prices, 300.0)
-	total := 0.0
+// 	var prices []float64 
+// 	prices = append(prices, 100.0)
+// 	prices = append(prices, 200.0)
+// 	prices = append(prices, 300.0)
+// 	total := 0.0
 
-	for _, v := range prices {
-		total += v
+// 	for _, v := range prices {
+// 		total += v
+// 	}
+// 	fmt.Println("Total price:", total)
+// }
+
+func main() {
+	// ১. Map তৈরি করা (make ফাংশন ব্যবহার করে)
+	UserAge := make(map[string]int)
+	UserAge["rahim"] = 25
+	UserAge["jahid"] = 20
+	fmt.Println("rahim age", UserAge["rahim"])
+	fmt.Println("jahid age", UserAge["jahid"])
+
+	age, ok := UserAge["rahim"]
+	if ok {
+		fmt.Println("rahim age:", age)
+	} else {
+		fmt.Println("rahim age not found")
 	}
-	fmt.Println("Total price:", total)
+
+	delete(UserAge, "rahim")
+	fmt.Println(" After deleting rahim age:", UserAge)
 }

@@ -217,24 +217,41 @@ import (
 // 	fmt.Println("book4",bookPrices["Book4"])
 // }
 
-func divide(a int, b int) (int, error) {
-	if b == 0 {
-		return 0, errors.New("division by zero")
+// func divide(a int, b int) (int, error) {
+// 	if b == 0 {
+// 		return 0, errors.New("division by zero")
+// 	}
+// 	return a / b, nil
+// }
+
+// func main() {
+// 	result, err := divide(10, 2)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+// 	fmt.Println("Result:", result)
+// 	result2, err := divide(10, 0)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+// 	fmt.Println("Result2:", result2)
+// }
+
+func checkAge(age int) error {
+	if age < 18 {
+		return errors.New("age cannot be under 18")
 	}
-	return a / b, nil
+	return nil
 }
 
 func main() {
-	result, err := divide(10, 2)
+	age := 25
+	err := checkAge(age)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
-	fmt.Println("Result:", result)
-	result2, err := divide(10, 0)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	fmt.Println("Result2:", result2)
+	fmt.Println("Age is valid.")
 }

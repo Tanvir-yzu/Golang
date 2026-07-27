@@ -183,21 +183,35 @@ import (
 // 	fmt.Println("Total price:", total)
 // }
 
-func main() {
-	// ১. Map তৈরি করা (make ফাংশন ব্যবহার করে)
-	UserAge := make(map[string]int)
-	UserAge["rahim"] = 25
-	UserAge["jahid"] = 20
-	fmt.Println("rahim age", UserAge["rahim"])
-	fmt.Println("jahid age", UserAge["jahid"])
+// func main() {
+// 	// ১. Map তৈরি করা (make ফাংশন ব্যবহার করে)
+// 	UserAge := make(map[string]int)
+// 	UserAge["rahim"] = 25
+// 	UserAge["jahid"] = 20
+// 	fmt.Println("rahim age", UserAge["rahim"])
+// 	fmt.Println("jahid age", UserAge["jahid"])
 
-	age, ok := UserAge["rahim"]
+// 	age, ok := UserAge["rahim"]
+// 	if ok {
+// 		fmt.Println("rahim age:", age)
+// 	} else {
+// 		fmt.Println("rahim age not found")
+// 	}
+
+// 	delete(UserAge, "rahim")
+// 	fmt.Println(" After deleting rahim age:", UserAge)
+// }
+
+func main(){
+	bookPrices := make(map[string]float64)
+	bookPrices["Book1"] = 100.0
+	bookPrices["Book2"] = 200.0
+	bookPrices["Book3"] = 300.0
+	book, ok := bookPrices["Book4"]
 	if ok {
-		fmt.Println("rahim age:", age)
+		fmt.Println("Book4 price:", book)
 	} else {
-		fmt.Println("rahim age not found")
+		fmt.Println("Book4 price not found")
 	}
-
-	delete(UserAge, "rahim")
-	fmt.Println(" After deleting rahim age:", UserAge)
+	fmt.Println("book4",bookPrices["Book4"])
 }

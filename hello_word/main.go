@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -202,16 +203,38 @@ import (
 // 	fmt.Println(" After deleting rahim age:", UserAge)
 // }
 
-func main(){
-	bookPrices := make(map[string]float64)
-	bookPrices["Book1"] = 100.0
-	bookPrices["Book2"] = 200.0
-	bookPrices["Book3"] = 300.0
-	book, ok := bookPrices["Book4"]
-	if ok {
-		fmt.Println("Book4 price:", book)
-	} else {
-		fmt.Println("Book4 price not found")
+// func main(){
+// 	bookPrices := make(map[string]float64)
+// 	bookPrices["Book1"] = 100.0
+// 	bookPrices["Book2"] = 200.0
+// 	bookPrices["Book3"] = 300.0
+// 	book, ok := bookPrices["Book4"]
+// 	if ok {
+// 		fmt.Println("Book4 price:", book)
+// 	} else {
+// 		fmt.Println("Book4 price not found")
+// 	}
+// 	fmt.Println("book4",bookPrices["Book4"])
+// }
+
+func divide(a int, b int) (int, error) {
+	if b == 0 {
+		return 0, errors.New("division by zero")
 	}
-	fmt.Println("book4",bookPrices["Book4"])
+	return a / b, nil
+}
+
+func main() {
+	result, err := divide(10, 2)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Result:", result)
+	result2, err := divide(10, 0)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Result2:", result2)
 }

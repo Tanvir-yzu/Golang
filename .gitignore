@@ -1,19 +1,94 @@
-# Binaries for programs and plugins
+# Compiled Go binaries
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+*.out
 
-# Test binary, built with `go test -c`
+# Test binaries
 *.test
 
-# Output of the go coverage tool
+# Go coverage reports
 *.out
+coverage.html
+coverage.xml
+
+# Go module cache
+go.sum
+go.mod
+vendor/
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Debug symbols
+*.dbg
+
+# Profiling files
+*.pprof
+*.prof
+
+# Log files
+*.log
+logs/
 
 # Environment variables (Secrets)
 .env
+.env.local
+.env.*.local
 
-# IDE or Editor folders
+# IDE / Editor configurations
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+bin/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+docker-compose.override.yml
+
+# CI/CD
+.ci/
+.circleci/
+.github/
+.gitlab/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Dependency directories (legacy GOPATH)
+pkg/
+
+# Generated documentation
+docs/_site/
+
+# Security scan reports
+.snyk
+*.snyk
+
+# Go toolchain cache
+.golangci.yml
+
+# Lint reports
+lint-report.json
+
+# Benchmark results
+benchmark.txt

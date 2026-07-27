@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Todo App - Modern Task Manager</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe',
+                            300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6',
+                            600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a',
+                        },
+                        dark: {
+                            900: '#0f172a', 800: '#1e293b', 700: '#334155', 600: '#475569',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .loader {
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #3b82f6;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 min-h-screen text-gray-100 font-sans antialiased">
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-primary-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 -left-40 w-96 h-96 bg-primary-600/5 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-40 right-1/3 w-72 h-72 bg-primary-400/5 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <header class="mb-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-primary-500/20 rounded-2xl mb-4">
+                <i class="fa-solid fa-list-check text-3xl text-primary-400"></i>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+                Task Manager
+            </h1>
+            <p class="text-gray-400 mt-2">Organize your day with ease</p>
+        </header>
+
+        <!-- Auth Section -->
+        <div id="auth-section" class="max-w-md mx-auto">
+            <div id="login-form" class="bg-dark-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-dark-700 shadow-xl">
+                <div class="text-center mb-6">
+                    <h2 class="text-xl font-semibold">Welcome Back</h2>
+                    <p class="text-gray-400 text-sm mt-1">Sign in to your account</p>
+                </div>
+                <form id="login-form-element" class="space-y-4">
+                    <div>
+                        <label for="login-email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                        <input type="email" id="login-email" required class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" placeholder="your@email.com">
+                    </div>
+                    <div>
+                        <label for="login-password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                        <input type="password" id="login-password" required class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" placeholder="••••••••">
+                    </div>
+                    <button type="button" onclick="handleLogin()" class="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
+                        <span id="login-loader" class="loader hidden"></span>
+                        <span>Sign In</span>
+                    </button>
+                    <p class="text-center text-gray-400 text-sm mt-4">
+                        Don't have an account? <button type="button" onclick="loadRegisterForm()" class="text-primary-400 hover:text-primary-300 transition-colors underline">Sign Up</button>
+                    </p>
+                </form>
+                <div id="auth-error" class="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm hidden"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="hidden">
+            <div class="bg-dark-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-dark-700 shadow-xl mb-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-user-circle text-primary-400"></i>
+                        <span id="user-greeting">Welcome</span>
+                    </h3>
+                    <button onclick="handleLogout()" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 text-gray-300 text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-dark-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-dark-700 shadow-xl mb-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-primary-400"></i>
+                    Add New Task
+                </h3>
+                <form id="todo-form-element" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="todo-title" class="block text-sm font-medium text-gray-300 mb-1">Title</label>
+                            <input type="text" id="todo-title" required class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" placeholder="Task title">
+                        </div>
+                        <div>
+                            <label for="todo-description" class="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                            <input type="text" id="todo-description" class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" placeholder="Task description (optional)">
+                        </div>
+                    </div>
+                    <button type="button" onclick="handleAddTodo()" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
+                        <span id="add-loader" class="loader hidden"></span>
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Task</span>
+                    </button>
+                </form>
+            </div>
+
+            <div id="todos-list" class="space-y-3">
+                <div class="bg-dark-800/50 backdrop-blur-sm rounded-2xl p-8 border border-dark-700 text-center">
+                    <i class="fa-solid fa-list-check text-6xl text-dark-600 mb-4"></i>
+                    <p class="text-gray-400">No tasks yet. Add your first task above!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout Success Message -->
+        <div id="logout-success" class="hidden max-w-md mx-auto">
+            <div class="bg-green-500/10 border border-green-500/20 rounded-2xl p-6 text-center">
+                <i class="fa-solid fa-check-circle text-4xl text-green-400 mb-3"></i>
+                <h3 class="text-lg font-semibold text-green-300">Successfully logged out</h3>
+                <p class="text-gray-400 text-sm mt-1">Click below to sign in again</p>
+                <button onclick="loadLoginForm()" class="mt-4 px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors">
+                    Sign In
+                </button>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const token = localStorage.getItem('jwt_token');
+                if (token) {
+                    loadDashboard();
+                }
+            });
+
+            function getToken() {
+                return localStorage.getItem('jwt_token');
+            }
+
+            function showError(elementId, message) {
+                const errorElement = document.getElementById(elementId);
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.classList.remove('hidden');
+                    setTimeout(() => errorElement.classList.add('hidden'), 5000);
+                }
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function handleLogin() {
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                const loader = document.getElementById('login-loader');
+
+                if (!email || !password) return;
+
+                loader.classList.remove('hidden');
+                showError('auth-error', '');
+
+                fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                })
+                .then(response => {
+                    loader.classList.add('hidden');
+                    if (!response.ok) return response.json().then(err => { throw err; });
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.token) {
+                        localStorage.setItem('jwt_token', data.token);
+                        localStorage.setItem('user_id', data.user_id);
+                        loadDashboard();
+                    }
+                })
+                .catch(err => {
+                    showError('auth-error', err.message || 'Login failed');
+                });
+            }
+
+            function handleRegister() {
+                const email = document.getElementById('reg-email').value;
+                const password = document.getElementById('reg-password').value;
+                const loader = document.getElementById('register-loader');
+
+                if (!email || !password) return;
+
+                loader.classList.remove('hidden');
+                showError('auth-error', '');
+
+                fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                })
+                .then(response => {
+                    loader.classList.add('hidden');
+                    if (!response.ok) return response.json().then(err => { throw err; });
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.token) {
+                        localStorage.setItem('jwt_token', data.token);
+                        localStorage.setItem('user_id', data.user_id);
+                        loadDashboard();
+                    }
+                })
+                .catch(err => {
+                    showError('auth-error', err.message || 'Registration failed');
+                });
+            }
+
+            function handleLogout() {
+                fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + getToken() }
+                })
+                .then(() => {
+                    localStorage.removeItem('jwt_token');
+                    localStorage.removeItem('user_id');
+                    document.getElementById('dashboard').classList.add('hidden');
+                    document.getElementById('auth-section').classList.remove('hidden');
+                    document.getElementById('logout-success').classList.add('hidden');
+                })
+                .catch(err => {
+                    console.error('Logout failed:', err);
+                    localStorage.removeItem('jwt_token');
+                    localStorage.removeItem('user_id');
+                    location.reload();
+                });
+            }
+
+            function loadDashboard() {
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('logout-success').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                
+                const email = localStorage.getItem('jwt_token') ? 'User' : '';
+                document.getElementById('user-greeting').textContent = 'Welcome back';
+
+                fetch('/api/todos', { headers: { 'Authorization': 'Bearer ' + getToken() } })
+                .then(response => {
+                    if (!response.ok) return response.json().then(err => { throw err; });
+                    return response.json();
+                })
+                .then(data => {
+                    const list = document.getElementById('todos-list');
+                    if (Array.isArray(data) && data.length > 0) {
+                        list.innerHTML = data.map(todo => createTodoElement(todo)).join('');
+                    } else {
+                        list.innerHTML = `
+                            <div class="bg-dark-800/50 backdrop-blur-sm rounded-2xl p-8 border border-dark-700 text-center">
+                                <i class="fa-solid fa-list-check text-6xl text-dark-600 mb-4"></i>
+                                <p class="text-gray-400">No tasks yet. Add your first task above!</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to load todos:', err);
+                    localStorage.removeItem('jwt_token');
+                    location.reload();
+                });
+            }
+
+            function handleAddTodo() {
+                const title = document.getElementById('todo-title').value;
+                const description = document.getElementById('todo-description').value;
+                const loader = document.getElementById('add-loader');
+
+                if (!title) return;
+
+                loader.classList.remove('hidden');
+
+                fetch('/api/todos', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + getToken()
+                    },
+                    body: JSON.stringify({ title, description })
+                })
+                .then(response => {
+                    loader.classList.add('hidden');
+                    if (!response.ok) return response.json().then(err => { throw err; });
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('todo-title').value = '';
+                    document.getElementById('todo-description').value = '';
+                    
+                    const list = document.getElementById('todos-list');
+                    const emptyState = list.querySelector('.text-center');
+                    if (emptyState) emptyState.remove();
+                    
+                    const todoElement = document.createElement('div');
+                    todoElement.className = 'bg-dark-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-5 border border-dark-700 hover:border-dark-600 transition-all animate-slide-up';
+                    todoElement.id = 'todo-' + data.id;
+                    todoElement.innerHTML = `
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1">
+                                <h4 class="font-medium text-gray-100">${escapeHtml(data.title)}</h4>
+                                ${data.description ? `<p class="text-sm text-gray-400 mt-1">${escapeHtml(data.description)}</p>` : ''}
+                                <div class="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                                    <span>ID: ${data.id}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="loadEditTodo(${data.id})" class="p-2 text-gray-400 hover:text-primary-400 hover:bg-dark-700 rounded-lg transition-colors" title="Edit">
+                                    <i class="fa-solid fa-pencil"></i>
+                                </button>
+                                <button onclick="handleDeleteTodo(${data.id})" class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    list.insertBefore(todoElement, list.firstChild);
+                })
+                .catch(err => {
+                    loader.classList.add('hidden');
+                    alert(err.message || 'Failed to add task');
+                });
+            }
+
+            function handleDeleteTodo(id) {
+                if (!confirm('Are you sure you want to delete this task?')) return;
+
+                fetch('/api/todos/' + id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + getToken() }
+                })
+                .then(response => {
+                    if (!response.ok) return response.json().then(err => { throw err; });
+                    const todoElement = document.getElementById('todo-' + id);
+                    if (todoElement) {
+                        todoElement.style.opacity = '0';
+                        setTimeout(() => todoElement.remove(), 300);
+                    }
+                })
+                .catch(err => {
+                    alert(err.message || 'Failed to delete task');
+                });
+            }
+
+            function loadEditTodo(id) {
+                fetch('/api/todos/' + id, { headers: { 'Authorization': 'Bearer ' + getToken() } })
+                .then(response => {
+                    if (!response.ok) return response.json().then(err => { throw err; });
+                    return response.json();
+                })
+                .then(data => {
+                    const todoElement = document.getElementById('todo-' + id);
+                    if (todoElement) {
+                        todoElement.innerHTML = `
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-100">${escapeHtml(data.title)}</h4>
+                                    ${data.description ? `<p class="text-sm text-gray-400 mt-1">${escapeHtml(data.description)}</p>` : ''}
+                                    <div class="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                                        <span>ID: ${data.id}</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="loadEditTodo(${data.id})" class="p-2 text-gray-400 hover:text-primary-400 hover:bg-dark-700 rounded-lg transition-colors" title="Edit">
+                                        <i class="fa-solid fa-pencil"></i>
+                                    </button>
+                                    <button onclick="handleDeleteTodo(${data.id})" class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-4 bg-dark-900/50 rounded-xl border border-dark-600">
+                                <h4 class="text-sm font-medium text-gray-300 mb-3">Edit Task</h4>
+                                <div class="space-y-3">
+                                    <input type="text" id="edit-title-${id}" value="${escapeHtml(data.title)}" class="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500" placeholder="Title">
+                                    <input type="text" id="edit-desc-${id}" value="${escapeHtml(data.description)}" class="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500" placeholder="Description">
+                                    <div class="flex gap-2">
+                                        <button onclick="handleUpdateTodo(${id})" class="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors">Save</button>
+                                        <button onclick="cancelEdit(${id})" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 text-gray-300 text-sm font-medium rounded-lg transition-colors">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    alert(err.message || 'Failed to load task');
+                });
+            }
+
+            function handleUpdateTodo(id) {
+                const title = document.getElementById('edit-title-' + id).value;
+                const description = document.getElementById('edit-desc-' + id).value;
+
+                if (!title) {
+                    alert('Title is required');
+                    return;
+                }
+
+                fetch('/api/todos/' + id, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + getToken()
+                    },
+                    body: JSON.stringify({ title, description })
+                })
+                .then(response => {
+                    if (!response.ok) return response.json().then(err => { throw err; });
+                    loadDashboard();
+                })
+                .catch(err => {
+                    alert(err.message || 'Failed to update task');
+                });
+            }
+
+            function cancelEdit(id) {
+                const todoElement = document.getElementById('todo-' + id);
+                if (todoElement) {
+                    loadDashboard();
+                }
+            }
+
+            function loadLoginForm() {
+                document.getElementById('auth-section').innerHTML = `
+                    <div id="login-form" class="bg-dark-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-dark-700 shadow-xl">
+                        <div class="text-center mb-6">
+                            <h2 class="text-xl font-semibold">Welcome Back</h2>
+                            <p class="text-gray-400 text-sm mt-1">Sign in to your account</p>
+                        </div>
+                        <form id="login-form-element" class="space-y-4">
+                            <div>
+                                <label for="login-email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                                <input type="email" id="login-email" required class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" placeholder="your@email.com">
+                            </div>
+                            <div>
+                                <label for="login-password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                                <input type="password" id="login-password" required class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" placeholder="••••••••">
+                            </div>
+                            <button type="button" onclick="handleLogin()" class="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
+                                <span id="login-loader" class="loader hidden"></span>
+                                <span>Sign In</span>
+                            </button>
+                            <p class="text-center text-gray-400 text-sm mt-4">
+                                Don't have an account? <button type="button" onclick="loadRegisterForm()" class="text-primary-400 hover:text-primary-300 transition-colors underline">Sign Up</button>
+                            </p>
+                        </form>
+                        <div id="auth-error" class="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm hidden"></div>
+                    </div>
+                `;
+            }
+
+            function loadRegisterForm() {
+                document.getElementById('auth-section').innerHTML = `
+                    <div id="register-form" class="bg-dark-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-dark-700 shadow-xl">
+                        <div class="text-center mb-6">
+                            <h2 class="text-xl font-semibold">Create Account</h2>
+                            <p class="text-gray-400 text-sm mt-1">Join us today</p>
+                        </div>
+                        <form id="register-form-element" class="space-y-4">
+                            <div>
+                                <label for="reg-email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                                <input type="email" id="reg-email" required class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" placeholder="your@email.com">
+                            </div>
+                            <div>
+                                <label for="reg-password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                                <input type="password" id="reg-password" required class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all" placeholder="•••••••• (8+ chars)">
+                            </div>
+                            <button type="button" onclick="handleRegister()" class="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
+                                <span id="register-loader" class="loader hidden"></span>
+                                <span>Create Account</span>
+                            </button>
+                            <p class="text-center text-gray-400 text-sm mt-4">
+                                Already have an account? <button type="button" onclick="loadLoginForm()" class="text-primary-400 hover:text-primary-300 transition-colors underline">Sign In</button>
+                            </p>
+                        </form>
+                        <div id="auth-error" class="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm hidden"></div>
+                    </div>
+                `;
+            }
+        </script>
+    </div>
+</body>
+</html>

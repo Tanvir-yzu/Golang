@@ -633,12 +633,100 @@ func deleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// serveIndex serves the HTML file
+func serveIndex(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./index.html")
+}
+
+// loginFormHandler serves the login form HTML
+func loginFormHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	w.Write([]byte(`
+		<div id="login-form" class="bg-dark-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-dark-700 shadow-xl">
+			<div class="text-center mb-6">
+				<h2 class="text-xl font-semibold">Welcome Back</h2>
+				<p class="text-gray-400 text-sm mt-1">Sign in to your account</p>
+			</div>
+			
+			<form id="login-form-element" class="space-y-4">
+				<div>
+					<label for="login-email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+					<input type="email" id="login-email" name="email" required
+						class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+						placeholder="your@email.com">
+				</div>
+				<div>
+					<label for="login-password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+					<input type="password" id="login-password" name="password" required
+						class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+						placeholder="••••••••">
+				</div>
+				<button type="button" onclick="handleLogin()" class="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
+					<span id="login-loader" class="loader hidden"></span>
+					<span>Sign In</span>
+				</button>
+				<p class="text-center text-gray-400 text-sm mt-4">
+					Don't have an account? 
+					<button type="button" onclick="loadRegisterForm()" class="text-primary-400 hover:text-primary-300 transition-colors underline">
+						Sign Up
+					</button>
+				</p>
+			</form>
+			<div id="auth-error" class="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm hidden"></div>
+		</div>
+	`))
+}
+
+// registerFormHandler serves the register form HTML
+func registerFormHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	w.Write([]byte(`
+		<div id="register-form" class="bg-dark-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-dark-700 shadow-xl">
+			<div class="text-center mb-6">
+				<h2 class="text-xl font-semibold">Create Account</h2>
+				<p class="text-gray-400 text-sm mt-1">Join us today</p>
+			</div>
+			
+			<form id="register-form-element" class="space-y-4">
+				<div>
+					<label for="reg-email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+					<input type="email" id="reg-email" name="email" required
+						class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+						placeholder="your@email.com">
+				</div>
+				<div>
+					<label for="reg-password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+					<input type="password" id="reg-password" name="password" required
+						class="w-full px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+						placeholder="•••••••• (8+ chars, uppercase, number)">
+				</div>
+				<button type="button" onclick="handleRegister()" class="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
+					<span id="register-loader" class="loader hidden"></span>
+					<span>Create Account</span>
+				</button>
+				<p class="text-center text-gray-400 text-sm mt-4">
+					Already have an account? 
+					<button type="button" onclick="loadLoginForm()" class="text-primary-400 hover:text-primary-300 transition-colors underline">
+						Sign In
+					</button>
+				</p>
+			</form>
+			<div id="auth-error" class="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm hidden"></div>
+		</div>
+	`))
+}
+
 func main() {
 	initDatabase()
 	defer db.Close()
 
 	// Start token blacklist cleanup goroutine
 	go CleanupBlacklist()
+
+	// Serve static HTML
+	http.HandleFunc("/", serveIndex)
+	http.HandleFunc("/login-form", loginFormHandler)
+	http.HandleFunc("/register-form", registerFormHandler)
 
 	// Auth routes (public)
 	http.HandleFunc("/api/auth/register", RegisterHandler)
